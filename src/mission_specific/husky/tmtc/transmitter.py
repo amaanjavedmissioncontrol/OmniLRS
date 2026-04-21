@@ -95,7 +95,6 @@ class HuskyTransmitter:
         self._transmit(self._parameters_conf["temperature_right"], temperatures["-Y"])
         self._transmit(self._parameters_conf["temperature_top"], temperatures["+Z"])
         self._transmit(self._parameters_conf["temperature_bottom"], temperatures["-Z"])
-        self._transmit(self._parameters_conf["temperature_elec_box"], temperatures["interior"])
 
     def transmit_power_info(self, interval_s):
         robot_position, _ = self._robot_RG.get_pose_of_base_link()

@@ -39,7 +39,6 @@ robots_settings:
       temperature_right: "/Rover/temperature_right"
       temperature_top: "/Rover/temperature_top"
       temperature_bottom: "/Rover/temperature_bottom"
-      temperature_elec_box: "/Rover/temperature_elec_box"
       battery_charge: "/Rover/battery_charge"
       battery_voltage: "/Rover/battery_voltage"
       total_current_in: "/Rover/total_current_in"
