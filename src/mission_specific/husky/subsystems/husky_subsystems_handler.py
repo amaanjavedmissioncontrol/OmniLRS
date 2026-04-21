@@ -56,10 +56,10 @@ class HuskySubsystemsHandler(RobotSubsystemsHandler):
             CommonDevice.OBC, current_draw=(0.0, 5.0), power_state=PowerState.ON
         )
         self._devices[CommonDevice.MOTOR_CONTROLLER] = Device(
-            CommonDevice.MOTOR_CONTROLLER, current_draw=(0.0, 10.0), power_state=PowerState.OFF
+            CommonDevice.MOTOR_CONTROLLER, current_draw=(0.0, 10.0), power_state=PowerState.ON
         )
         self._devices[CommonDevice.CAMERA] = Device(
-            CommonDevice.CAMERA, current_draw=(0.0, 4.0), power_state=PowerState.OFF
+            CommonDevice.CAMERA, current_draw=(0.0, 4.0), power_state=PowerState.ON
         )
         self._devices[CommonDevice.RADIO] = Device(
             CommonDevice.RADIO, current_draw=(0.0, 3.0), power_state=PowerState.ON

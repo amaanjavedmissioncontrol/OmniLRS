@@ -9,8 +9,8 @@ import omni.kit.app
 from src.mission_specific.husky.tmtc.enums import HuskyYamcsArguments, HuskyCameraResolution
 from src.mission_specific.husky.tmtc.camera_handler import CameraViewType, HuskyCameraHandler
 from src.mission_specific.husky.tmtc.transmitter import HuskyTransmitter
-from src.mission_specific.husky.subsystems.husky_robot_enums import GoNogoState, ObcState
-from src.subsystems.device import CommonDevice, HealthState, PowerState
+from src.mission_specific.husky.subsystems.husky_robot_enums import ObcState
+from src.subsystems.device import CommonDevice, PowerState
 from src.tmtc.intervals_handler import IntervalName
 
 
@@ -62,22 +62,20 @@ class HuskyCommander:
     # ------------------------------------------------------------------
 
     def handle_high_res_capture(self):
-        if self._robot.subsystems.get_device_power_state(CommonDevice.CAMERA) == PowerState.ON:
-            self._camera_handler.transmit_camera_view(
-                HuskyCameraHandler.BUCKET_ONCOMMAND,
-                HuskyCameraResolution.HIGH.value,
-                CameraViewType.RGBA,
-            )
-            self._obc_handler.set_obc_state(ObcState.CAMERA, 10)
+        self._camera_handler.transmit_camera_view(
+            HuskyCameraHandler.BUCKET_ONCOMMAND,
+            HuskyCameraResolution.HIGH.value,
+            CameraViewType.RGBA,
+        )
+        self._obc_handler.set_obc_state(ObcState.CAMERA, 10)
 
     def handle_depth_capture(self):
-        if self._robot.subsystems.get_device_power_state(CommonDevice.CAMERA) == PowerState.ON:
-            self._camera_handler.transmit_camera_view(
-                HuskyCameraHandler.BUCKET_DEPTH,
-                HuskyCameraResolution.HIGH.value,
-                CameraViewType.DEPTH,
-            )
-            self._obc_handler.set_obc_state(ObcState.CAMERA, 10)
+        self._camera_handler.transmit_camera_view(
+            HuskyCameraHandler.BUCKET_DEPTH,
+            HuskyCameraResolution.HIGH.value,
+            CameraViewType.DEPTH,
+        )
+        self._obc_handler.set_obc_state(ObcState.CAMERA, 10)
 
     def set_activity_of_camera_streaming(self, action: str):
         if action == HuskyYamcsArguments.STOP.value:
@@ -99,47 +97,8 @@ class HuskyCommander:
             print("HuskyCommander.set_activity_of_camera_streaming: unknown action:", action)
 
     # ------------------------------------------------------------------
-    # Power / electronics commands
+    # Admin commands
     # ------------------------------------------------------------------
-
-    def handle_electronics_on_off(self, electronics: str, new_state: str):
-        if new_state not in [PowerState.ON.value, PowerState.OFF.value]:
-            print("HuskyCommander: unknown PowerState:", new_state)
-            return
-
-        new_state = PowerState[new_state]
-        self._robot.subsystems.set_device_power_state(electronics, new_state)
-
-        if electronics == CommonDevice.CAMERA:
-            action = HuskyYamcsArguments.START.value if new_state == PowerState.ON else HuskyYamcsArguments.STOP.value
-            self.set_activity_of_camera_streaming(action)
-        elif electronics == CommonDevice.MOTOR_CONTROLLER:
-            if new_state == PowerState.OFF:
-                self._drive_handler.stop_robot()
-                self._robot.subsystems.set_device_health_state(
-                    CommonDevice.MOTOR_CONTROLLER, HealthState.NOMINAL
-                )
-
-    # ------------------------------------------------------------------
-    # System commands
-    # ------------------------------------------------------------------
-
-    def handle_go_nogo(self, decision: str):
-        if decision not in [GoNogoState.GO.name, GoNogoState.NOGO.name]:
-            print("HuskyCommander: unknown GO/NOGO decision:", decision)
-            return
-
-        decision = GoNogoState[decision]
-        self._robot.subsystems.set_go_nogo_state(decision)
-
-        if decision == GoNogoState.NOGO:
-            self._drive_handler.stop_robot()
-
-    def inject_fault(self):
-        self._robot.subsystems.set_device_health_state(
-            CommonDevice.MOTOR_CONTROLLER, HealthState.FAULT
-        )
-        self._drive_handler.stop_robot()
 
     def handle_battery_perc_change(self, battery_percentage: int):
         self._robot.subsystems.set_battery_perc(battery_percentage)

@@ -8,6 +8,7 @@ import omni.kit.app
 
 from src.mission_specific.husky.tmtc.camera_handler import HuskyCameraHandler
 from src.mission_specific.husky.tmtc.husky_commander import HuskyCommander
+from src.mission_specific.husky.tmtc.husky_drive_handler import HuskyDriveHandler
 from src.mission_specific.husky.tmtc.transmitter import HuskyTransmitter
 from src.tmtc.yamcs_TMTC import YamcsTMTC
 
@@ -32,6 +33,7 @@ class HuskyController(YamcsTMTC):
         robot,
     ):
         super().__init__(yamcs_instance_conf, yamcs_conf, robot_name, robot_RG, robot)
+        self._drive_handler = HuskyDriveHandler(robot, self._intervals_handler, self._obc_handler)
 
         self._intervals = yamcs_conf["intervals"]
 
@@ -82,20 +84,6 @@ class HuskyController(YamcsTMTC):
             self._commander.handle_depth_capture,
         )
         self._commands_handler.add_command(
-            commands_conf["power_electronics"],
-            self._commander.handle_electronics_on_off,
-            args=["subsystem_id", "power_state"],
-        )
-        self._commands_handler.add_command(
-            commands_conf["go_nogo"],
-            self._commander.handle_go_nogo,
-            args=["decision"],
-        )
-        self._commands_handler.add_command(
-            commands_conf["admin_inject_fault"],
-            self._commander.inject_fault,
-        )
-        self._commands_handler.add_command(
             commands_conf["admin_battery_percentage"],
             self._commander.handle_battery_perc_change,
             args=["battery_percentage"],
@@ -120,13 +108,6 @@ class HuskyController(YamcsTMTC):
             is_repeating=True,
             execute_immediately=True,
             function=self._transmitter.transmit_camera_streaming_state,
-        )
-        self._intervals_handler.add_new_interval(
-            name="GO_NOGO",
-            seconds=interval,
-            is_repeating=True,
-            execute_immediately=True,
-            function=self._transmitter.transmit_go_nogo,
         )
         self._intervals_handler.add_new_interval(
             name="IMU readings",
