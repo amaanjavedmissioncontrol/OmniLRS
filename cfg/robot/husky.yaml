@@ -6,8 +6,8 @@ robots_settings:
     robot_name: husky
     usd_path: assets/USD_Assets/robots/nograph_husky.usd
     pose:
-      position: [26., 16.6, 0.5]
-      orientation: [0., 0., 0.70711, 0.70711]
+      position: [0., 0., 0.5]
+      orientation: [0., 0., 0., 1.]
     domain_id: 0
     target_links: [
       "front_left_wheel_link",
