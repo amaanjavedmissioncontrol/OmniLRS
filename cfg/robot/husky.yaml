@@ -6,7 +6,7 @@ robots_settings:
     robot_name: husky
     usd_path: assets/USD_Assets/robots/nograph_husky.usd
     pose:
-      position: [0., 0., 0.5]
+      # position: [3, 7.5, 1] commenting out the initial position to use default position defined in the environment yaml file
       orientation: [0., 0., 0., 1.]
     domain_id: 0
     target_links: [

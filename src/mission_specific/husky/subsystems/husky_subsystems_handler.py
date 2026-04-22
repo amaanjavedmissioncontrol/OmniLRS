@@ -15,6 +15,7 @@ from src.subsystems.robot_physics_models.radio_model import RadioModel
 from src.subsystems.robot_physics_models.thermal_model import ThermalModel
 from src.subsystems.robot_subsystems_handler import RobotSubsystemsHandler
 from src.subsystems.robot_enums import ObcState
+from src.mission_specific.pragyaan.subsystems.neutron_spectrometer_model import NeutronSpectrometerModel
 
 
 class HuskySubsystemsHandler(RobotSubsystemsHandler):
@@ -40,6 +41,7 @@ class HuskySubsystemsHandler(RobotSubsystemsHandler):
             obc_metrics_model=obc_metrics_model,
             power_model=power_model,
         )
+        self._neutron_spectrometer = NeutronSpectrometerModel()
         self._setup_devices()
         self._setup_power_model()
 
@@ -66,6 +68,12 @@ class HuskySubsystemsHandler(RobotSubsystemsHandler):
         )
         self._devices[CommonDevice.EPS] = Device(
             CommonDevice.EPS, current_draw=(0.0, 1.0), power_state=PowerState.ON
+        )
+        self._devices[CommonDevice.APXS] = Device(
+            CommonDevice.APXS, current_draw=(0.0, 9.0), power_state=PowerState.ON
+        )
+        self._devices[CommonDevice.NEUTRON_SPECTROMETER] = Device(
+            CommonDevice.NEUTRON_SPECTROMETER, current_draw=(0.0, 9.0), power_state=PowerState.ON
         )
 
     def _setup_power_model(self):
@@ -98,6 +106,17 @@ class HuskySubsystemsHandler(RobotSubsystemsHandler):
         )
         self._power_model.compute(interval_s)
         return self._power_model.get_outputs()
+
+    def get_neutron_count(self):
+        return self._neutron_spectrometer.get_next_count()
+
+    def set_is_near_water(self, is_near):
+        self._neutron_spectrometer.is_near_water = is_near
+
+    def set_battery_perc(self, battery_perc):
+        capacity = self._power_model._battery_capacity_wh
+        new_charge = battery_perc / 100 * capacity
+        self._power_model._battery_charge_wh = new_charge
 
     def get_base_station_position(self):
         return self._base_station_pos

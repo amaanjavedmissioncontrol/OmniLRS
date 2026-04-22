@@ -12,6 +12,7 @@ from src.mission_specific.husky.tmtc.transmitter import HuskyTransmitter
 from src.mission_specific.husky.subsystems.husky_robot_enums import ObcState
 from src.subsystems.device import CommonDevice, PowerState
 from src.tmtc.intervals_handler import IntervalName
+from src.mission_specific.pragyaan.tmtc.payload_handler import PayloadHandler
 
 
 class HuskyCommander:
@@ -24,9 +25,8 @@ class HuskyCommander:
     Husky-specific capabilities vs. Pragyaan:
       * Differential-drive only (drive_straight / drive_turn).
       * Onboard camera (RGBA + depth capture, streaming on/off).
-      * Power control for camera and motor controller.
-      * GO / NOGO gate.
-      * No solar panel, no APXS, no neutron spectrometer.
+      * APXS payload and neutron spectrometer (both ON by default).
+      * No solar panel, no GO/NOGO gate.
     """
 
     def __init__(
@@ -38,6 +38,7 @@ class HuskyCommander:
         drive_handler,
         obc_handler,
         intervals_handler,
+        payload_handler: PayloadHandler,
     ):
         self._robot = robot
         self._intervals = intervals
@@ -46,6 +47,7 @@ class HuskyCommander:
         self._drive_handler = drive_handler
         self._obc_handler = obc_handler
         self._intervals_handler = intervals_handler
+        self._payload_handler = payload_handler
 
     # ------------------------------------------------------------------
     # Drive commands
@@ -99,6 +101,26 @@ class HuskyCommander:
     # ------------------------------------------------------------------
     # Admin commands
     # ------------------------------------------------------------------
+
+    def snap_apxs(self):
+        power_state = self._robot.subsystems.get_device_power_state(CommonDevice.APXS)
+        self._payload_handler.snap_apxs(power_state)
+
+    def set_activity_of_neutron_streaming(self, power_state: PowerState):
+        if power_state == PowerState.OFF:
+            self._intervals_handler.remove_interval(IntervalName.NEUTRON_COUNT.value)
+        elif power_state == PowerState.ON:
+            if not self._intervals_handler.does_exist(IntervalName.NEUTRON_COUNT.value):
+                self._intervals_handler.add_new_interval(
+                    name=IntervalName.NEUTRON_COUNT.value,
+                    seconds=self._intervals["camera_streaming"],
+                    is_repeating=True,
+                    execute_immediately=False,
+                    function=self._transmitter.transmit_neutron_count,
+                )
+
+    def set_is_near_water(self, trigger_water_detection):
+        self._robot.subsystems.set_is_near_water(trigger_water_detection)
 
     def handle_battery_perc_change(self, battery_percentage: int):
         self._robot.subsystems.set_battery_perc(battery_percentage)

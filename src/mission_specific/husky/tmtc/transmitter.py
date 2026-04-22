@@ -125,6 +125,10 @@ class HuskyTransmitter:
             modulo = angles[i] % (2 * math.pi)
             angles[i] = int(modulo * (1024.0 / (2 * math.pi)))
 
+    def transmit_neutron_count(self):
+        count = self._robot.subsystems.get_neutron_count()
+        self._transmit(self._parameters_conf["neutron_counts"], int(count))
+
     def transmit_camera_streaming_state(self):
         is_streaming = self._intervals_handler.does_exist(IntervalName.CAMERA_STREAMING.value)
         state = PowerState.ON if is_streaming else PowerState.OFF
