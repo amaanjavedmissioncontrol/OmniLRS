@@ -19,10 +19,11 @@ class ImagesHandler:
     # image_1 is the first image with real camera view
     INIT_COUNT = 0 
 
-    def __init__(self, yamcs_processor, yamcs_address, images_conf, url_full_nginx):
+    def __init__(self, yamcs_processor, yamcs_address, images_conf, url_full_nginx, yamcs_client=None):
         self._yamcs_processor = yamcs_processor
         self._yamcs_address = yamcs_address
         self.URL_FULL_NGINX = url_full_nginx
+        self._storage_client = yamcs_client.get_storage_client() if yamcs_client is not None else None
         self._NO_DATA_IMAGE_PATH = images_conf["no_data_image_path"]
         self._buckets = {}
         self._counter = {}
@@ -53,6 +54,7 @@ class ImagesHandler:
 
     def save_image(self, image:Image, bucket_name:str):
         image_name = self._save_image_locally(image, bucket_name)
+        self._upload_to_yamcs(image_name, bucket_name)
         self._inform_yamcs(image_name, bucket_name)
         self._counter[bucket_name] += 1
 
@@ -65,6 +67,17 @@ class ImagesHandler:
         image.save(img_path)
 
         return image_name
+
+    def _upload_to_yamcs(self, image_name: str, bucket: str):
+        if self._storage_client is None:
+            return
+        IMG_DIR = f"/tmp/{bucket}"
+        img_path = f"{IMG_DIR}/{image_name}"
+        try:
+            with open(img_path, "rb") as f:
+                self._storage_client.upload_object(bucket, image_name, f)
+        except Exception as e:
+            print(f"ImagesHandler: failed to upload {image_name} to YAMCS bucket '{bucket}': {e}")
 
     def _inform_yamcs(self, image_name, bucket):
         counter_number = self._counter[bucket]

@@ -66,7 +66,7 @@ class YamcsTMTC(ABC):
         self._obc_handler:ObcHandler = ObcHandler(self._robot, self._intervals_handler)
         self._drive_handler:DriveHandler = DriveHandler(self._robot, self._intervals_handler, self._obc_handler)
         self._commands_handler:CommandsHandler = CommandsHandler(self._yamcs_processor, yamcs_instance_conf, yamcs_conf["mdb"])
-        self._images_handler:ImagesHandler = ImagesHandler(self._yamcs_processor, yamcs_instance_conf["address"], yamcs_conf["images"], yamcs_instance_conf["url_full_nginx"])
+        self._images_handler:ImagesHandler = ImagesHandler(self._yamcs_processor, yamcs_instance_conf["address"], yamcs_conf["images"], yamcs_instance_conf["url_full_nginx"], yamcs_client)
 
     @abstractmethod
     def setup_command_callbacks(self, commands_conf):
